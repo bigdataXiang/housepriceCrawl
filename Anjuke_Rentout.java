@@ -43,7 +43,7 @@ public class Anjuke_Rentout{
 		  for(int i=0;i<regions.length;i++)
 			{getRentOutInfo(regions[i]);}
 		}
-	
+	static JSONObject jsonObjArr = new JSONObject();
 	
 	/* 解析出租页面 */
 	private static String parseRentOut(String url)
@@ -53,7 +53,7 @@ public class Anjuke_Rentout{
 		//System.out.println(url);
 		String content = HTMLTool.fetchURL(url, "utf-8","get");//GB2312是汉字书写国家标准。
 		//System.out.println("url.ok!");
-		JSONObject jsonObjArr = new JSONObject();
+		
 		String substr="";
 	
 		Parser parser = new Parser();//获取解析器
@@ -98,14 +98,7 @@ public class Anjuke_Rentout{
 					//poi += "<TITLE>" + tt.replace(" ", "").replace("\r\n","").replace("\n","").replace("\b","").replace("\t","").trim() + "</TITLE>";//大标题
 				}
 				parser.reset();
-				
-				
-				Date d = new Date();
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd hh:mm:ss");
-				//poi += "<TIME>" + sdf.format(d) + "</TIME>";//发布时间
-				
-				jsonObjArr.put("time",sdf.format(d));
-			
+
 				filter = new AndFilter(new TagNameFilter("dl"), new HasParentFilter(new AndFilter(new TagNameFilter("div"), new HasAttributeFilter("class", "litem fl"))));
 				nodes = parser.extractAllNodesThatMatch(filter);
 				if (nodes != null)
@@ -410,14 +403,12 @@ public class Anjuke_Rentout{
 							
 						}
 					}
-				
-												
-					jsonObjArr.put("url",url);
-					jsonObjArr.put("heat_supply","null");
-					poi=jsonObjArr.toString().replace(" ", "").replace("&nbsp;", "").trim();
-					return  poi;
-		}
-}else{
+				}
+				jsonObjArr.put("url",url);
+				jsonObjArr.put("heat_supply","null");
+				poi=jsonObjArr.toString().replace(" ", "").replace("&nbsp;", "").trim();
+				return  poi;
+             }else{
 			parser.reset();
 				 filter=new AndFilter(new TagNameFilter("h1"),new HasAttributeFilter("class","title f16 txt_c"));
 				 nodes= parser.extractAllNodesThatMatch(filter); 	
@@ -761,7 +752,6 @@ public class Anjuke_Rentout{
 						jsonObjArr.put("url",url);
 						jsonObjArr.put("heat_supply","null");
 						poi=jsonObjArr.toString().replace("&nbsp;", "").trim();
-						return  poi;
 			       }
 		        }	
 			 }
@@ -769,24 +759,8 @@ public class Anjuke_Rentout{
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		} 
-
-		if (poi != null)
-		{
-			poi = poi.replace("&nbsp;", "").replace("&nbsp", "");
-			int ss = poi.indexOf("[");
-			while (ss != -1)
-			{
-				int ee = poi.indexOf("]", ss + 1);
-				if (ee != -1)
-				{
-					String sub = poi.substring(ss, ee + 1);
-					poi = poi.replace(sub, "");
-				}
-				else
-					break;
-				ss = poi.indexOf("[", ss);
-			}
-		}
+		
+		
 		return poi;
 	}
 	
@@ -896,7 +870,13 @@ public class Anjuke_Rentout{
 														String poi2 = parseRentOut(href);
 														if (poi2 == null)
 															continue;
-														String poi=poi2.replace("&nbsp;", "").replace("&nbsp", "").replace("()", "");						
+														String poi=poi2.replace("&nbsp;", "").replace("&nbsp", "").replace("()", "");
+														Date d = new Date();
+														SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy/MM/dd hh:mm:ss");
+														//poi += "<TIME>" + sdf.format(d) + "</TIME>";//发布时间
+														
+														jsonObjArr.put("time",sdf1.format(d));
+														poi=jsonObjArr.toString().replace("&nbsp;", "").replace("\r\n","").replace("\n","").replace("\b","").replace("\t","").trim();
 														System.out.println(poi);
 															if (poi != null)
 															{
@@ -904,7 +884,7 @@ public class Anjuke_Rentout{
 																JSONObject jsonObject = JSONObject.fromObject(poi);
 									                            String tm=jsonObject.get("time").toString();
 																	try {
-																		Date date = sdf.parse(tm);
+																		Date date = sdf1.parse(tm);
 																		if (latestdate != null)
 																		{
 																			if (date.before(latestdate))
@@ -937,7 +917,7 @@ public class Anjuke_Rentout{
 																		synchronized(BJ_RENTOUT)
 																		//synchronized是Java语言的关键字，当它用来修饰一个方法或者一个代码块的时候，能够保证在同一时刻最多只有一个线程执行该段代码。
 																		{
-																			poi.replace(" ", "").replace("\r\n","").replace("\n","").replace("\b","").replace("\t","").trim();
+																			poi.replace("&nbsp;", "").replace(" ", "").replace("\r\n","").replace("\n","").replace("\b","").replace("\t","").trim();
 																			if(url.indexOf("/yanjiao/")!=-1||url.indexOf("/zhoubiana/")!=-1)
 																				FileTool.Dump(poi,FOLDER2, "UTF-8");
 																			else
