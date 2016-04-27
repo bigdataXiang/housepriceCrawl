@@ -498,17 +498,14 @@ public class Anjuke_Newhouse{
 						String poi2 = parseNewBuilding(url_can);
 						String poi=poi2.replace("&nbsp;", "").replace("&nbsp", "").replace("()", "");
 						System.out.println(poi);
-							if (poi != null)
-							{
+						if (poi != null)
+						{
 								// 获取时间
 								int m = poi.indexOf("<TIME>");
 								int k = poi.indexOf("</TIME>");
-								
-								if (m != -1 && k != -1)
-								{
-									assert(m < k);
-									String tm = poi.substring(m + "<TIME>".length(), k);
-									try {
+								JSONObject jsonObject = JSONObject.fromObject(poi);
+                                String tm=jsonObject.get("time").toString();
+								try {
 										Date date = sdf.parse(tm);
 										if (latestdate != null)
 										{
@@ -550,7 +547,6 @@ public class Anjuke_Newhouse{
 												
 										}
 									}
-								}
 							}
 							
 							try {
