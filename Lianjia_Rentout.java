@@ -26,12 +26,13 @@ import net.sf.json.JSONObject;
 
 public class Lianjia_Rentout {
 
-	private static String BJ_NEWHOUSE = "NEW";
-	private static String BJ_RENTOUT = "RENTOUT";
-	private static String BJ_RESOLDS = "RESOLD";
 
-	public static String FOLDER = "/home/gir/crawldata/beijing/lianjia/rentout/lianjia_rentout0414.txt";
-	public static String LOG = FOLDER;
+	private static String BJ_RENTOUT = "RENTOUT";
+
+
+	public static String FOLDER1 = "/home/gir/crawldata/beijing/lianjia/rentout/lianjia_rentout0414.txt";
+	public static String FOLDER2 = "/home/gir/crawldata/beijing/lianjia/rentout/lianjia_rentout0414_zhoubian.txt";
+	public static String LOG = FOLDER1;
 	public static String regions[] = { "/dongcheng/", "/xicheng/", "/chaoyang/", "/haidian/", "/fengtai/",
 			"/shijingshan/", "/tongzhou/", "/changping/", "/daxing/", "/yizhuangkaifaqu/", "/shunyi/", "/fangshan/",
 			"/mentougou/", "/pinggu/", "/huairou/", "/miyun/", "/yanqing/", "/yanjiao/" };
@@ -42,11 +43,15 @@ public class Lianjia_Rentout {
 	private static boolean firstershoufang = true; // 同上
 
 	public static void main(String[] args) {
-		for(int i=1;i<=100;i++){
-			String url="http://bj.lianjia.com/zufang/pg"+i+"/";
-			System.out.println("第"+i+"页");
-			getRentOutInfo(url);// 租房
+		for(int k=0;k< regions.length;k++){
+			String tempurl="http://bj.lianjia.com/zufang"+regions[k];
+			for(int i=1;i<=100;i++){
+				String url=tempurl+"pg"+i+"/";
+				System.out.println("第"+i+"页");
+				getRentOutInfo(url);// 租房
+			}
 		}
+		
     }
 
 	// 抓取出租数据
@@ -144,7 +149,12 @@ public class Lianjia_Rentout {
 										synchronized (BJ_RENTOUT) {
 											poi.replace(" ", "").replace("\r\n", "").replace("\n", "").replace("\b", "")
 													.replace("\t", "").trim();
-											FileTool.Dump(poi, FOLDER, "UTF-8");
+											if(url.indexOf("yanjiao")!=-1){
+												FileTool.Dump(poi, FOLDER2, "UTF-8");
+											}else{
+												FileTool.Dump(poi, FOLDER1, "UTF-8");
+											}
+											
 										}
 									}
 							}
