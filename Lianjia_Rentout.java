@@ -45,7 +45,9 @@ public class Lianjia_Rentout {
 	public static void main(String[] args) {
 		for(int k=0;k< regions.length;k++){
 			String tempurl="http://bj.lianjia.com/zufang"+regions[k];
-			for(int i=1;i<=100;i++){
+			String pages=getTotalPage(tempurl);
+			int total=Integer.parseInt(pages);
+			for(int i=1;i<=total;i++){
 				String url=tempurl+"pg"+i+"/";
 				System.out.println("第"+i+"页");
 				getRentOutInfo(url);// 租房
@@ -53,6 +55,34 @@ public class Lianjia_Rentout {
 		}
 		
     }
+	public static String getTotalPage(String url){
+		String pages="";
+		Parser parser = new Parser();
+		String content = HTMLTool.fetchURL(url, "utf-8","get");
+		if(content!=null){
+			try {
+				parser.setInputHTML(content);
+				parser.setEncoding("utf-8");
+
+				NodeFilter filter=new AndFilter(new TagNameFilter("div"),new HasAttributeFilter("class","page-box house-lst-page-box"));
+
+				NodeList nodes = parser.extractAllNodesThatMatch(filter);
+
+				if (nodes != null&& nodes.size()==1) {
+					TagNode tni = (TagNode) nodes.elementAt(0);
+					String totalPage =tni.getAttribute("page-data");
+					if ( totalPage != null&& totalPage.startsWith("{")) {
+						totalPage=totalPage.substring(totalPage.indexOf("{")+"\" totalPage\":".length(),totalPage.indexOf(",")).trim();
+						pages=totalPage;
+					}
+				}
+			}catch (ParserException e1) {
+
+				e1.printStackTrace();
+		 }
+	}
+	return pages;
+}
 
 	// 抓取出租数据
 	public static void getRentOutInfo(String url) {
