@@ -40,11 +40,18 @@ public class Fang_Newhouse {
 	private static String BJ_RENTINFO = "RENTINFO";
 	private static String BJ_RENTOUT = "RENTOUT";
 	private static String BJ_RESOLDS = "RESOLD";
-	
-	public static String FOLDER = "/home/gir/crawldata/beijing/fang/newhouse/fang_NewBuilding2014_10.txt";
+	public static String FOLDER = "";
+
     public static void main(String[] args) {
+    	int mode=1;
+    	if(mode==1){
+    		FOLDER = "E:/crawldata/fang/newhouse/fang_NewBuilding2016_1.txt";
+    	}else{
+    		FOLDER = "/home/gir/crawldata/beijing/fang/newhouse/fang_NewBuilding2014_10.txt";
+    	}
+
 		
-		getNewBuildingInfo(2016,1);//已经调试好917
+		getNewBuildingInfo(2016,1,FOLDER);//已经调试好917
 		
 	
 	}
@@ -378,7 +385,7 @@ public class Fang_Newhouse {
 	 * */
 	public static String NEWBUILDING_URL = "http://newhouse.fang.com/house/saledate/";
 	
-	public static void getNewBuildingInfo(int year, int month)
+	public static void getNewBuildingInfo(int year, int month,String Folder)
 	{
 
 		String url = NEWBUILDING_URL;
