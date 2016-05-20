@@ -40,17 +40,51 @@ public class Fang_Rentout {
 	private static String BJ_RENTINFO = "RENTINFO";
 	private static String BJ_RENTOUT = "RENTOUT";
 	private static String BJ_RESOLDS = "RESOLD";
-	
-	public static String FOLDER1 = "/home/gir/crawldata/beijing/fang/rentout/fang_rentout0414.txt";
-	public static String FOLDER2 = "/home/gir/crawldata/beijing/fang/rentout/fang_rentout0414_zhoubian.txt";
+	//D:/Crawldata_BeiJing/fang/rentout/0520/
+	///home/gir/crawldata/beijing/fang/rentout/
+	public static String FOLDER1 = "D:/Crawldata_BeiJing/fang/rentout/0520/fang_rentout"+"0520.txt";
+	public static String FOLDER2 = "D:/Crawldata_BeiJing/fang/rentout/0520/fang_rentout"+"0520_zhoubian.txt";
+	public static String MONITOR="D:/Crawldata_BeiJing/fang/rentout/0520/";
 	public static void main(String[] args) {
 		try{
+			int pages=0;
+			String content = HTMLTool.fetchURL("http://zu.fang.com/house-a01/i31/", "gb2312", "get");
+			Parser parser = new Parser();
+			String poi = "";
+			try {
+				parser.setInputHTML(content);
+				parser.setEncoding("gb2312");
+
+				HasParentFilter parentFilter=new HasParentFilter(new AndFilter(new TagNameFilter("div"), new HasAttributeFilter("class", "fanye")));
+				NodeFilter filter = new AndFilter(new TagNameFilter("span"),parentFilter);
+				NodeList nodes = parser.extractAllNodesThatMatch(filter);
+				
+				if (nodes != null && nodes.size() == 1)
+				{
+					String str = nodes.elementAt(0).toPlainTextString().replace("共", "").replace("页", "").replace("\r\n", "").replace("\t", "").replace("\b","").replace("\n","").replace("\r","");
+					System.out.println(str);
+					pages=Integer.parseInt(str);
+				}
+				
+			}catch (ParserException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} 
 			for(int i=0;i<regions.length;i++)
 			{
-			  getRentOutInfo(regions[i]);////已经调试好917
+				//http://zu.fang.com/house-a01/i3100/
+				String url="http://zu.fang.com"+regions[i]+"i3";
+				for(int j=10;j<=pages;j++){
+					url="http://zu.fang.com"+regions[i]+"i3"+j+"/";
+					getRentOutInfo(url);
+					String str="完成"+regions[i]+"区"+"第"+j+"页的抓取！";
+					System.out.println(str);
+					FileTool.Dump(str, MONITOR+"monitor.txt", "utf-8");
+				}  
 			}
 		}catch(ArrayIndexOutOfBoundsException e){
 			System.out.println(e.getMessage());
+			e.getStackTrace();
 		}
 		
 	}
@@ -365,14 +399,11 @@ public class Fang_Rentout {
 	 * */
 	public static String RENTOUT_URL = "http://zu.fang.com";
 	
-	public static void getRentOutInfo(String region)
+	public static void getRentOutInfo(String url)
 	{
 		// 首先加载
 		Vector<String> log = null;
-		synchronized(BJ_RENTOUT)
-		{
-			log = FileTool.Load(FOLDER1 + File.separator + region + "_rentout.log", "UTF-8");
-		}
+		
 		// 2014/12/8 17:16:42
 	    SimpleDateFormat sdf=new SimpleDateFormat("yyyy/MM/dd hh:mm:ss");
 	    //
@@ -380,18 +411,7 @@ public class Fang_Rentout {
 		java.util.Date latestdate = null;
 		Date newest = null;
 		
-		if (log != null)
-		{
-			try {
-				latestdate = sdf.parse(log.elementAt(0));
-				latestdate = new Date(latestdate.getTime() - 1);
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		String url = RENTOUT_URL + region;
+
 		Vector<String> urls = new Vector<String>();
 		
 		Set<String> visited = new TreeSet<String>();
@@ -428,13 +448,20 @@ public class Fang_Rentout {
 				
 				if (nodes != null)
 				{
+					int size=nodes.size();
 					for (int n = 0; n < nodes.size(); n ++)
 					{
 						TagNode tn = (TagNode)nodes.elementAt(n);
 						String purl = tn.getAttribute("href");
-						if (purl.startsWith("/chuzu"))
+						if (purl.indexOf("/chuzu")!=-1)
 						{
-							String poi = parseRentOut("http://zu.fang.com" + purl);
+							String poi="";
+							if(purl.startsWith("/chuzu")){
+								poi = parseRentOut("http://zu.fang.com" + purl);
+							}else{
+								poi = parseRentOut(purl);
+							}
+							
 							if (poi != null)
 							{
 								// 获取时间
@@ -495,69 +522,10 @@ public class Fang_Rentout {
 						}
 					}
 				}
-				
-				parser.reset();
-				
-				// <div class="fanye gray6">  <a class="pageNow">
-				filter = new AndFilter(new TagNameFilter("div"), 
-					new HasChildFilter(new AndFilter(new TagNameFilter("a"), new HasAttributeFilter("class", "pageNow")))); 
-				
-				nodes = parser.extractAllNodesThatMatch(filter);
-				
-				if (nodes != null)
-				{
-					for (int nn = 0; nn < nodes.size(); nn ++)
-					{
-						NodeList cdl = nodes.elementAt(nn).getChildren();
-						
-						if (cdl == null)
-							continue;
-						
-						for (int jj = 0; jj < cdl.size(); jj ++)
-						{
-							if (cdl.elementAt(jj) instanceof TagNode)
-							{
-								TagNode tni = (TagNode) cdl.elementAt(jj);
-								String href = tni.getAttribute("href");
-								if (tni.getTagName().equalsIgnoreCase("a") && tni.getAttribute("id") == null && href != null)
-								{
-									if (!visited.contains("http://zu.fang.com" + href))
-									{
-										int kk = 0;
-										for (; kk < urls.size(); kk ++)
-										{
-											if (urls.elementAt(kk).equalsIgnoreCase("http://zu.fang.com" + href))
-											{
-												break;
-											}
-										}
-										
-										if (kk == urls.size())
-											urls.add("http://zu.fang.com" + href);
-									}
-								}
-							}
-						}						
-					}
-				}
-				
-				if (quit)
-					break;
-			}
-			catch (ParserException e1) {
+			}catch (ParserException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			} 
-		}
-		
-		synchronized(BJ_RENTOUT)
-		{
-			File f = new File(FOLDER1 + File.separator + region + ".log");
-			f.delete();
-			if (newest != null)
-			{			
-				FileTool.Dump(sdf.format(newest), FOLDER1 + File.separator + region + ".log", "UTF-8");
-			}
 		}
 	}
 	
