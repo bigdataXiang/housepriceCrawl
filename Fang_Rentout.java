@@ -46,34 +46,33 @@ public class Fang_Rentout {
 	public static String FOLDER2 = "D:/Crawldata_BeiJing/fang/rentout/0520/fang_rentout"+"0520_zhoubian.txt";
 	public static String MONITOR="D:/Crawldata_BeiJing/fang/rentout/0520/";
 	public static void main(String[] args) {
-		try{
-			int pages=0;
-			String content = HTMLTool.fetchURL("http://zu.fang.com/house-a01/i31/", "gb2312", "get");
-			Parser parser = new Parser();
-			String poi = "";
-			try {
-				parser.setInputHTML(content);
-				parser.setEncoding("gb2312");
-
-				HasParentFilter parentFilter=new HasParentFilter(new AndFilter(new TagNameFilter("div"), new HasAttributeFilter("class", "fanye")));
-				NodeFilter filter = new AndFilter(new TagNameFilter("span"),parentFilter);
-				NodeList nodes = parser.extractAllNodesThatMatch(filter);
-				
-				if (nodes != null && nodes.size() == 1)
-				{
-					String str = nodes.elementAt(0).toPlainTextString().replace("共", "").replace("页", "").replace("\r\n", "").replace("\t", "").replace("\b","").replace("\n","").replace("\r","");
-					System.out.println(str);
-					pages=Integer.parseInt(str);
-				}
-				
-			}catch (ParserException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} 
+		int pages=0;
 			for(int i=0;i<regions.length;i++)
 			{
-				//http://zu.fang.com/house-a01/i3100/
-				String url="http://zu.fang.com"+regions[i]+"i3";
+				try{
+					
+					String content = HTMLTool.fetchURL("http://zu.fang.com"+regions[i]+"i31/", "gb2312", "get");
+					Parser parser = new Parser();
+					try {
+						parser.setInputHTML(content);
+						parser.setEncoding("gb2312");
+
+						HasParentFilter parentFilter=new HasParentFilter(new AndFilter(new TagNameFilter("div"), new HasAttributeFilter("class", "fanye")));
+						NodeFilter filter = new AndFilter(new TagNameFilter("span"),parentFilter);
+						NodeList nodes = parser.extractAllNodesThatMatch(filter);
+						
+						if (nodes != null && nodes.size() == 1)
+						{
+							String str = nodes.elementAt(0).toPlainTextString().replace("共", "").replace("页", "").replace("\r\n", "").replace("\t", "").replace("\b","").replace("\n","").replace("\r","");
+							System.out.println(str);
+							pages=Integer.parseInt(str);
+						}
+						
+					}catch (ParserException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} 
+				String url="";				
 				for(int j=10;j<=pages;j++){
 					url="http://zu.fang.com"+regions[i]+"i3"+j+"/";
 					getRentOutInfo(url);
@@ -81,13 +80,14 @@ public class Fang_Rentout {
 					System.out.println(str);
 					FileTool.Dump(str, MONITOR+"monitor.txt", "utf-8");
 				}  
-			}
+			
 		}catch(ArrayIndexOutOfBoundsException e){
 			System.out.println(e.getMessage());
 			e.getStackTrace();
 		}
-		
 	}
+		
+}
 	static JSONObject jsonObjArr = new JSONObject();
 	/* 解析出租页面 */
 	private static String parseRentOut(String url)
